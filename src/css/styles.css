@@ -76,17 +76,33 @@ body {
 }
 
 .gallery {
-  align-items: center;
-  justify-content: center;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
+  padding: 0 10px;
 }
 
 .gallery-image {
   object-fit: cover;
   width: 100%;
   height: 250px;
+}
+
+@media (max-width: 599px) {
+  .gallery {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 991px) {
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .gallery {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 .info-item {
