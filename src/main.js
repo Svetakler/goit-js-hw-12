@@ -17,6 +17,7 @@ document.body.appendChild(loadMoreBtn);
 let query = '';
 let currentPage = 1;
 const perPage = 15;
+let totalHits = 0;
 
 let instance = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
@@ -30,7 +31,6 @@ function onSubmitForm(evt) {
   evt.preventDefault();
 
   query = evt.currentTarget.searchQuery.value.trim();
-
   if (query === '') {
     return iziToast.info({
       position: 'topRight',
@@ -41,23 +41,29 @@ function onSubmitForm(evt) {
 
   resetDomMarkup();
   currentPage = 1;
+  totalHits = 0;
   showLoader();
   loadMoreBtn.style.display = 'none';
 
   fetchImages(query, currentPage, perPage)
-    .then(resp => {
-      if (resp.length === 0) {
-        iziToast.warning({
+    .then(data => {
+      totalHits = data.totalHits;
+      if (data.hits.length === 0) {
+        iziToast.info({
           position: 'topRight',
-          title: 'No Results',
-          message: 'No images found for your search. Try another query!',
+          title: 'No results',
+          message: 'No images found. Please try a different search term.',
         });
+        hideLoader();
         return;
       }
 
-      domMarkup(resp);
+      domMarkup(data.hits);
       instance.refresh();
-      loadMoreBtn.style.display = 'block';
+
+      if (currentPage * perPage < totalHits) {
+        loadMoreBtn.style.display = 'block';
+      }
     })
     .catch(error => {
       console.error('Error fetching images:', error);
@@ -79,18 +85,10 @@ function loadMoreImages() {
   showLoader();
 
   fetchImages(query, currentPage, perPage)
-    .then(resp => {
-      if (resp.length === 0) {
-        iziToast.info({
-          position: 'topRight',
-          title: 'End of Results',
-          message: "We're sorry, but you've reached the end of search results.",
-        });
-        loadMoreBtn.style.display = 'none';
-        return;
-      }
+    .then(data => {
+      const fetchedHits = data.hits;
 
-      domMarkup(resp);
+      domMarkup(fetchedHits);
       instance.refresh();
 
       const { height: cardHeight } =
@@ -99,6 +97,15 @@ function loadMoreImages() {
         top: cardHeight * 2,
         behavior: 'smooth',
       });
+
+      if (currentPage * perPage >= totalHits) {
+        loadMoreBtn.style.display = 'none';
+        iziToast.info({
+          position: 'topRight',
+          title: 'End of Results',
+          message: "We're sorry, but you've reached the end of search results.",
+        });
+      }
     })
     .catch(error => {
       console.error('Error fetching images:', error);

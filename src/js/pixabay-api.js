@@ -36,7 +36,7 @@ export default async function fetchImages(query, page = 1, perPage = 15) {
       return [];
     }
 
-    return data.hits;
+    return data;
   } catch (error) {
     iziToast.error({
       position: 'topRight',
